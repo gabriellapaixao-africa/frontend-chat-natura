@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com Gemini</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-box">
+            <div class="message bot-message">
+                <p>Olá! Faça uma pergunta sobre os dados.</p>
+            </div>
+        </div>
+        <div id="suggested-questions"></div>
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="Digite sua pergunta..." autocomplete="off" required>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
