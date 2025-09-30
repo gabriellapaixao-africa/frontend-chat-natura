@@ -3,7 +3,7 @@ const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const chatBox = document.getElementById('chat-box');
 const suggestedQuestionsContainer = document.getElementById('suggested-questions');
-const BACKEND_URL = 'https://classy-tapioca-330139.netlify.app/'; 
+const BACKEND_URL = 'https://gemini-looker-chat-868810243218.southamerica-east1.run.app'; 
 let conversationHistory = [];
 
 // --- FUNÇÃO DE SUGESTÕES ATUALIZADA ---
@@ -88,3 +88,4 @@ function addMessage(text, className, isMarkdown) {
     chatBox.scrollTop = chatBox.scrollHeight;
     return messageDiv;
 }
+
