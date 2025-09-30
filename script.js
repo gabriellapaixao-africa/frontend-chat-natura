@@ -3,7 +3,9 @@ const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const chatBox = document.getElementById('chat-box');
 const suggestedQuestionsContainer = document.getElementById('suggested-questions');
-const BACKEND_URL = 'https://gemini-looker-chat-868810243218.southamerica-east1.run.app'; 
+
+// --- CORREÇÃO: Removido o espaço no final da URL ---
+const BACKEND_URL = 'https://gemini-looker-chat-868810243218.southamerica-east1.run.app';
 let conversationHistory = [];
 
 // --- FUNÇÃO DE SUGESTÕES ATUALIZADA ---
@@ -23,7 +25,7 @@ function displaySuggestedQuestions(questions) {
     });
 }
 
-// (O evento 'load' e o addMessage continuam iguais, MAS o addMessage será atualizado)
+// O evento 'load' não é mais necessário aqui, pois as sugestões virão dinamicamente
 
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -48,24 +50,23 @@ chatForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (!response.ok) {
+            // Usa data.text que vem do nosso backend de erro JSON
             throw new Error(data.text || `Erro na rede: ${response.statusText}`);
         }
         
         const botResponseText = data.text;
-        // --- MUDANÇA: Adiciona a resposta processando Markdown ---
         addMessage(botResponseText, 'bot-message', true); // 'true' para processar como markdown
 
         conversationHistory.push({ role: 'model', parts: [{ text: botResponseText }] });
 
-        // --- MUDANÇA: Exibe as sugestões dinâmicas recebidas ---
         displaySuggestedQuestions(data.suggestions);
 
     } catch (error) {
-        // ... (o tratamento de erro continua igual, mas usando addMessage)
         if (loadingMessage.parentNode) chatBox.removeChild(loadingMessage);
         const errorMessage = `Desculpe, ocorreu um erro: ${error.message}`;
         addMessage(errorMessage, 'bot-message', false);
-        conversationHistory.push({ role: 'model', parts: [{ text: errorMessage }] });
+        // --- MELHORIA: Linha removida para não poluir o histórico com erros ---
+        // conversationHistory.push({ role: 'model', parts: [{ text: errorMessage }] });
     }
 });
 
@@ -76,6 +77,7 @@ function addMessage(text, className, isMarkdown) {
     
     if (isMarkdown) {
         // Converte o texto Markdown para HTML e insere no div
+        // A biblioteca 'marked' precisa estar carregada no seu index.html
         messageDiv.innerHTML = marked.parse(text);
     } else {
         // Para mensagens do usuário e de erro, apenas insere o texto
@@ -89,3 +91,13 @@ function addMessage(text, className, isMarkdown) {
     return messageDiv;
 }
 
+// Adiciona sugestões iniciais quando a página carrega
+window.addEventListener('load', () => {
+    const initialSuggestions = [
+        "Qual foi o investimento total no último mês?",
+        "Compare o CTR de todas as plataformas.",
+        "Qual campanha teve o maior Custo por View?",
+        "Mostre a tendência de custo ao longo do tempo."
+    ];
+    displaySuggestedQuestions(initialSuggestions);
+});
