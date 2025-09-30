@@ -1,23 +1,17 @@
+// (As constantes no início continuam as mesmas)
 const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
 const chatBox = document.getElementById('chat-box');
 const suggestedQuestionsContainer = document.getElementById('suggested-questions');
+const BACKEND_URL = 'https://classy-tapioca-330139.netlify.app/'; 
+let conversationHistory = [];
 
-// !! IMPORTANTE !! Cole a URL do seu serviço Cloud Run aqui
-const BACKEND_URL = 'https://gemini-looker-chat-868810243218.southamerica-east1.run.app'; 
-
-// Lista de perguntas que você quer sugerir
-const suggestedQuestions = [
-    "Qual foi o faturamento total no último trimestre?",
-    "Qual produto teve o melhor desempenho de vendas?",
-    "Compare as vendas entre as regiões Sul e Nordeste.",
-    "Mostre a tendência de crescimento mês a mês."
-];
-
-// Função para mostrar as perguntas como botões
-function displaySuggestedQuestions() {
+// --- FUNÇÃO DE SUGESTÕES ATUALIZADA ---
+function displaySuggestedQuestions(questions) {
     suggestedQuestionsContainer.innerHTML = '';
-    suggestedQuestions.forEach(questionText => {
+    if (!questions || questions.length === 0) return;
+
+    questions.forEach(questionText => {
         const button = document.createElement('button');
         button.textContent = questionText;
         button.className = 'suggested-button';
@@ -29,57 +23,66 @@ function displaySuggestedQuestions() {
     });
 }
 
-window.addEventListener('load', displaySuggestedQuestions);
+// (O evento 'load' e o addMessage continuam iguais, MAS o addMessage será atualizado)
 
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const userMessage = userInput.value.trim();
     if (!userMessage) return;
 
-    addMessage(userMessage, 'user-message');
+    addMessage(userMessage, 'user-message', false); // 'false' para não processar como markdown
     userInput.value = '';
     suggestedQuestionsContainer.innerHTML = ''; 
+    conversationHistory.push({ role: 'user', parts: [{ text: userMessage }] });
 
-    const loadingMessage = addMessage('Analisando...', 'loading-message');
+    const loadingMessage = addMessage('Analisando...', 'loading-message', false);
 
     try {
         const response = await fetch(BACKEND_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ prompt: userMessage }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: userMessage, history: conversationHistory }),
         });
 
         chatBox.removeChild(loadingMessage);
+        const data = await response.json();
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `Erro na rede: ${response.statusText}`);
+            throw new Error(data.text || `Erro na rede: ${response.statusText}`);
         }
+        
+        const botResponseText = data.text;
+        // --- MUDANÇA: Adiciona a resposta processando Markdown ---
+        addMessage(botResponseText, 'bot-message', true); // 'true' para processar como markdown
 
-        const data = await response.json();
-        addMessage(data.text, 'bot-message');
+        conversationHistory.push({ role: 'model', parts: [{ text: botResponseText }] });
+
+        // --- MUDANÇA: Exibe as sugestões dinâmicas recebidas ---
+        displaySuggestedQuestions(data.suggestions);
 
     } catch (error) {
-        if (loadingMessage.parentNode) {
-            chatBox.removeChild(loadingMessage);
-        }
-        addMessage(`Desculpe, ocorreu um erro: ${error.message}`, 'bot-message');
-        console.error('Erro:', error);
-    } finally {
-        // Opcional: mostrar novas sugestões ou as mesmas novamente após a resposta
-        displaySuggestedQuestions();
+        // ... (o tratamento de erro continua igual, mas usando addMessage)
+        if (loadingMessage.parentNode) chatBox.removeChild(loadingMessage);
+        const errorMessage = `Desculpe, ocorreu um erro: ${error.message}`;
+        addMessage(errorMessage, 'bot-message', false);
+        conversationHistory.push({ role: 'model', parts: [{ text: errorMessage }] });
     }
 });
 
-function addMessage(text, className) {
+// --- FUNÇÃO addMessage ATUALIZADA PARA RENDERIZAR MARKDOWN ---
+function addMessage(text, className, isMarkdown) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${className}`;
     
-    const p = document.createElement('p');
-    p.textContent = text;
-    messageDiv.appendChild(p);
+    if (isMarkdown) {
+        // Converte o texto Markdown para HTML e insere no div
+        messageDiv.innerHTML = marked.parse(text);
+    } else {
+        // Para mensagens do usuário e de erro, apenas insere o texto
+        const p = document.createElement('p');
+        p.textContent = text;
+        messageDiv.appendChild(p);
+    }
     
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
