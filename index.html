@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <title>Chat com Gemini</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insights Natura</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat-box">
-            <div class="message bot-message">
-                <p>Olá! Faça uma pergunta sobre os dados.</p>
-            </div>
+    <div class="container">
+        <header>
+            <h1>Análise da Campanha "Tododia Havana"</h1>
+            <p>Clique no botão abaixo para gerar uma análise estratégica e criativa completa sobre a performance da campanha.</p>
+        </header>
+        <div class="button-container">
+            <button id="generate-button">Gerar Insights</button>
         </div>
-        <div id="suggested-questions"></div>
-        <form id="chat-form">
-            <input type="text" id="user-input" placeholder="Digite sua pergunta..." autocomplete="off" required>
-            <button type="submit">Enviar</button>
-        </form>
+        <div id="response-container">
+            <p class="placeholder">Seus insights aparecerão aqui...</p>
+        </div>
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
